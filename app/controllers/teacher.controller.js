@@ -7,6 +7,12 @@ const connection = mysql.createConnection({
   database: 'sql12624494', // tên database (nếu có)
   port: 3306,
 });
+// const connection = mysql.createConnection({
+//   host: 'localhost',
+//   user: 'root',
+//   password: 'root123',
+//   database: 'room'
+// });
 var admin = require("firebase-admin");
 
 var serviceAccount = require("/webdemo/webdemo-d1191-firebase-adminsdk-6ebpi-81b5c8b628.json");

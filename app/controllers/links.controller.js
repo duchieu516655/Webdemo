@@ -1,13 +1,18 @@
 const mysql = require('mysql');
 // connection configurations
+// const connection = mysql.createConnection({
+//     host: 'sql12.freemysqlhosting.net',
+//     user: 'sql12624494',
+//     password: '5Qjd2tNwqT',
+//     database: 'sql12624494', // tên database (nếu có)
+//     port: 3306,
+//   });
 const connection = mysql.createConnection({
-    host: 'sql12.freemysqlhosting.net',
-    user: 'sql12624494',
-    password: '5Qjd2tNwqT',
-    database: 'sql12624494', // tên database (nếu có)
-    port: 3306,
+    host: 'localhost',
+    user: 'root',
+    password: 'root123',
+    database: 'room'
   });
-
 // connect to database
 connection.connect(function (err) {
     if (err) throw err
@@ -15,13 +20,13 @@ connection.connect(function (err) {
     
 })
 exports.create = (req, res) => {
-    const { teacherId, studentId } = req.body; // Lấy dữ liệu từ request body
+    const { classesId, studentId } = req.body; // Lấy dữ liệu từ request body
     console.log(req.body)
     // Lấy thông tin sinh viên theo teacher_id
     const getStudentsQuery = `SELECT students.name, students.email, students.phone 
                               FROM links 
                               INNER JOIN students ON links.student_id = students.id 
-                              WHERE links.teacher_id = ${parseInt(teacherId)}`;
+                              WHERE links.classes_id = ${parseInt(classesId)}`;
 
     connection.query(getStudentsQuery, (error, results) => {
         if (error) throw error;
@@ -29,13 +34,13 @@ exports.create = (req, res) => {
     });
 
     // Tạo liên kết giữa giáo viên và sinh viên
-    const createLinkQuery = `INSERT INTO links (teacher_id, student_id) VALUES (${parseInt(teacherId)}, ${parseInt(studentId)})`;
+    const createLinkQuery = `INSERT INTO links (classes_id, student_id) VALUES (${parseInt(classesId)}, ${parseInt(studentId)})`;
 console.log(createLinkQuery)
     connection.query(createLinkQuery, (error, results) => {
         if (error) throw error;
         return res.send({
             data: results,
-            message: 'Teacher and student have been linked successfully.'
+            message: 'class and student have been linked successfully.'
         });
     });
 };

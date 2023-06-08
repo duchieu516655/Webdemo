@@ -10,6 +10,12 @@ const connection = mysql.createConnection({
   database: 'sql12624494', // tên database (nếu có)
   port: 3306,
 });
+// const connection = mysql.createConnection({
+//   host: 'localhost',
+//   user: 'root',
+//   password: 'root123',
+//   database: 'room'
+// });
 var admin = require("firebase-admin");
 
 var serviceAccount = require("/webdemo/webdemo-d1191-firebase-adminsdk-6ebpi-81b5c8b628.json");
@@ -92,4 +98,20 @@ exports.getTeachersByTeacherId = (req, res) => {
         });
     });
     console.log(getTeacherQuery);
+};
+exports.getStudentsByclassesId = (req, res) => {
+  const classesId = req.params.id; 
+  const getStudentsQuery = `SELECT students.name, students.email, students.phone ,classes.name
+                            FROM links
+                            INNER JOIN classes ON links.classes_id = classes.id
+                            INNER JOIN students ON links.student_id = students.id 
+                            WHERE links.classes_id = ${classesId}`;
+
+  connection.query(getStudentsQuery, (error, results) => {
+      if (error) throw error;
+
+      return res.json({
+          data: results
+      });
+  });
 };

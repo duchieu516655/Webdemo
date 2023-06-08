@@ -5,5 +5,5 @@ module.exports = (app) => {
 
     app.get('/all/classes',classes.findAll);
 
-    app.get('/classes/teachers/:id',classes.getTeachersByTeacherId);
+    app.get('/classes/student/:id',classes.getStudentsByclassesId);
 }
