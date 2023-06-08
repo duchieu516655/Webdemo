@@ -101,7 +101,7 @@ exports.getTeachersByTeacherId = (req, res) => {
 };
 exports.getStudentsByclassesId = (req, res) => {
   const classesId = req.params.id; 
-  const getStudentsQuery = `SELECT students.name, students.email, students.phone ,classes.name
+  const getStudentsQuery = `SELECT students.name, students.email, students.phone
                             FROM links
                             INNER JOIN classes ON links.classes_id = classes.id
                             INNER JOIN students ON links.student_id = students.id 
