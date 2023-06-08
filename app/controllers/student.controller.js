@@ -1,10 +1,16 @@
 const mysql = require('mysql');
 // connection configurations
 const connection = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: 'root123',
-    database: 'room'
+  host: 'sql12.freemysqlhosting.net',
+  user: 'sql12624494',
+  password: '5Qjd2tNwqT',
+  database: 'sql12624494', // tên database (nếu có)
+  port: 3306,
+});
+
+connection.connect((err) => {
+  if (err) throw err;
+  console.log('Đã kết nối với MySQL!');
 });
 var admin = require("firebase-admin");
 
@@ -14,11 +20,7 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   databaseURL: "https://webdemo-d1191-default-rtdb.firebaseio.com/"
 }, 'my-app');
-// connect to database
-connection.connect(function (err) {
-    if (err) throw err
-    console.log('You are now connected with mysql database...')
-})
+
 exports.create = (req, res) => {
     if (!req.body.email) {
       return res.status(400).send({
