@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Ứng dụng WebRTC với Firebase</title>
+	<style>
+		video {
+			max-width: 100%;
+			height: auto;
+		}
+	</style>
+</head>
+<body>
+	<h1>Ứng dụng WebRTC với Firebase</h1>
+	<div id="localVideoContainer">
+		<h2>Camera của tôi</h2>
+		<video id="localVideo" autoplay muted></video>
+	</div>
+	<div id="remoteVideoContainer">
+		<h2>Camera của đối tác</h2>
+		<video id="remoteVideo" autoplay></video>
+	</div>
+	<button id="callButton">Gọi video</button>
+	<button id="hangupButton">Kết thúc</button>
+  <script src="webrtc-firebase.js"></script>
+</body>
+<script>
+	const localVideo = document.getElementById('localVideo');
+	function startVideo() {
+		navigator.mediaDevices.getUserMedia({
+			video: true,
+			audio: false
+		})
+		.then((stream) => {
+			localVideo.srcObject = stream;
+		})
+		.catch((err) => {
+			console.log(err);
+		});
+	}
+	document.getElementById('callButton').addEventListener('click', () => {
+		startVideo();
+	});
+	document.getElementById('hangupButton').addEventListener('click', () => {
+		localVideo.pause();
+		localVideo.srcObject = null;
+	});
+</script>
+<script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-database.js"></script>
+
+<script>
+  const firebaseConfig = {
+	apiKey: "AIzaSyCDiafKYiINX7uEvu5ISMmMQ-aC_nnwk_4",
+ 	authDomain: "webdemo-d1191.firebaseapp.com",
+ 	databaseURL: "https://webdemo-d1191-default-rtdb.firebaseio.com",
+  	projectId: "webdemo-d1191",
+  	storageBucket: "webdemo-d1191.appspot.com",
+  	messagingSenderId: "362900762937",
+  	appId: "1:362900762937:web:995904addcf44dcf26b8e8",
+  	measurementId: "G-6X8EP3GBD7"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const connectedRef = firebase.database().ref('.info/connected');
+  connectedRef.on('value', (snapshot) => {
+  const isConnected = snapshot.val() === true;
+  if (isConnected) {
+    console.log('Client connected to Firebase Realtime Database');
+    userConnectionRef = firebase.database().ref('users').push();
+    userConnectionRef.set({
+      isConnected: true,
+      connectedAt: new Date().toLocaleString()
+    });
+    userConnectionRef.onDisconnect().set({
+      isConnected: false,
+      disconnectedAt: new Date().toLocaleString()
+    }).then(() => {
+      console.log('Successfully registered onDisconnect() handler');
+    }).catch((error) => {
+      console.error('Failed to register onDisconnect() handler:', error);
+    });
+  } else {
+    console.log('Client disconnected from Firebase Realtime Database');
+    if (userConnectionRef) {
+      userConnectionRef.onDisconnect().remove().then(() => {
+        console.log('Successfully registered onDisconnect() handler for remove');
+      }).catch((error) => {
+        console.error('Failed to register onDisconnect() handler for remove:', error);
+      });
+    }
+  }
+});
+</script>
+</html>
