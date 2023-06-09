@@ -39,9 +39,8 @@ app.get('/room/:roomId', (req, res) => {
 
 require('./app/routes/student.routes.js')(app);
 require('./app/routes/teacher.routes.js')(app);
-require('./app/routes/links.routes.js')(app);
 require('./app/routes/classes.routes.js')(app);
-
+require('./app/routes/users.routes.js')(app);
 server.listen(4000, () => {
     console.log("Server is listening on port 4000");
 });
