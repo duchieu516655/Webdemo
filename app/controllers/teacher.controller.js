@@ -1,18 +1,23 @@
 const mysql = require('mysql');
-const uuid = require('uuid');
-const connection = mysql.createConnection({
-  host: 'sql12.freemysqlhosting.net',
-  user: 'sql12624494',
-  password: '5Qjd2tNwqT',
-  database: 'sql12624494', // tên database (nếu có)
-  port: 3306,
-});
+// const uuid = require('uuid');
+const bcrypt = require('bcryptjs');
+const { signupValidation, loginValidation } = require('../../validator/Validation');
+const { validationResult } = require('express-validator');
+const jwt = require('jsonwebtoken');
+const { v4: uuidv4 } = require("uuid");
 // const connection = mysql.createConnection({
-//   host: 'localhost',
-//   user: 'root',
-//   password: 'root123',
-//   database: 'room'
+//   host: 'sql12.freemysqlhosting.net',
+//   user: 'sql12624494',
+//   password: '5Qjd2tNwqT',
+//   database: 'sql12624494', // tên database (nếu có)
+//   port: 3306,
 // });
+const connection = mysql.createConnection({
+  host: 'localhost',
+  user: 'root',
+  password: 'root123',
+  database: 'room'
+});
 var admin = require("firebase-admin");
 
 var serviceAccount = require("/webdemo/webdemo-d1191-firebase-adminsdk-6ebpi-81b5c8b628.json");
@@ -22,100 +27,76 @@ admin.initializeApp({
   databaseURL: "https://webdemo-d1191-default-rtdb.firebaseio.com/"
 }, 'teacher-app');
 connection.connect(function (err) {
-    if (err) throw err
-    console.log('You are now connected with mysql database...')
+  if (err) throw err
+  console.log('You are now connected with mysql database...')
 })
-exports.create = (req, res) => {
-    if (!req.body.email) {
-      return res.status(400).send({
-        message: "email can not be empty"
-      });
-    }
-    
-    var params = req.body;
-    console.log(params);
-    const studentsRef = admin.firestore().collection('teachers');
-    studentsRef.add(params)
-      .then(docRef => {
-        const dbRef = admin.database().ref('teachers');
-  
-        dbRef.push(params, function(error) {
-          if (error) {
-            throw error;
-          } else {
-            connection.query("INSERT INTO teachers SET ? ", params,
-              function (error, results, fields) {
-                if (error) throw error;
-                return res.send({
-                  data: {
-                    firestoreId: docRef.id,
-                    realtimeId: dbRef.key,
-                    mysqlId: results.insertId
-                  },
-                  message: 'teacher has been created successfully.'
-                });
-              }
-            );
-          }
-        });
-      })
-      .catch(error => {
-        throw error;
-      });
-  };
-exports.findAll = (req, res) => {
-    connection.query('select * from teachers',
-        function (error, results, fields) {
-            if (error) throw error;
-            res.end(JSON.stringify(results));
-        });
-};
-exports.findOne = (req, res) => {
-
-    connection.query('select * from teachers where Id=?',
-        [req.params.id],
-        function (error, results, fields) {
-            if (error) throw error;
-            res.end(JSON.stringify(results));
-        });
-};
-exports.update = (req, res) => {
-    if (!req.body.description) {
-        return res.status(400).send({
-            message: "email can not be empty"
-        });
-    }
-
-    console.log(req.params.id);
-    console.log(req.body.description);
-    connection.query('UPDATE `teachers` SET `name`=?,`email`=? where `id`=?',
-        [req.body.name, req.body.description, req.params.id],
-        function (error, results, fields) {
-            if (error) throw error;
-            res.end(JSON.stringify(results));
-        });
-};
-exports.delete = (req, res) => {
-    console.log(req.body);
-    connection.query('DELETE FROM `teachers` WHERE `Id`=?', 
-        [req.body.id], function (error, results, fields) {
-            if (error) throw error;
-            res.end('Record has been deleted!');
+exports.createClasses = (req, res) => {
+  const theToken = req.headers.authorization && req.headers.authorization.split(' ')[1];
+  console.log(theToken)
+  // Kiểm tra xác thực token và role của người dùng
+  if (
+    !req.headers.authorization ||
+    !req.headers.authorization.startsWith('Bearer') ||
+    !req.headers.authorization.split(' ')[1]
+  ) {
+    return res.status(422).json({
+      message: "Please provide a valid auth token"
     });
-};
-exports.getStudentsByTeacherId = (req, res) => {
-    const teacherId = req.params.id; 
-    const getStudentsQuery = `SELECT students.name, students.email, students.phone ,teachers.name AS teacher_name
-                              FROM links
-                              INNER JOIN teachers ON links.teacher_id = teachers.id
-                              INNER JOIN students ON links.student_id = students.id 
-                              WHERE links.teacher_id = ${teacherId}`;
+  }
+  
+  const token = req.headers.authorization.split(' ')[1];
+  const decoded = jwt.verify(token, 'the-super-strong-secrect');
+  console.log(decoded)
+  if (decoded.role !== 'teacher') {
+    return res.status(401).json({
+      message: "Unauthorized"
+    });
+  }
 
-    connection.query(getStudentsQuery, (error, results) => {
-        if (error) throw error;
+  if (!req.body.name) {
+    return res.status(400).send({
+      message: "name can not be empty"
+    });
+  }
 
-        return res.json({
-            data: results
-        });
+  // Generate a unique room ID for the class using UUIDv4
+  const roomId = uuidv4();
+
+  const params = {
+    id: Math.floor(Math.random() * 1000000),
+    name: req.body.name,
+    room_url: `http://localhost:4000/room/${roomId}`
+  };
+
+  console.log(params);
+  const studentsRef = admin.firestore().collection('classes');
+  studentsRef.add(params)
+    .then(docRef => {
+      const dbRef = admin.database().ref('classes');
+      dbRef.push(params, function(error) {
+        if (error) {
+          throw error;
+        } else {
+          connection.query("INSERT INTO classes SET ? ", params,
+            function (error, results, fields) {
+              if (error) throw error;
+              return res.send({
+                data: {
+                  id: params.id,
+                  name: params.name,
+                  room_url: params.room_url,
+                  firestoreId: docRef.id,
+                  realtimeId: dbRef.key,
+                  mysqlId: results.insertId
+                },
+                message: 'class has been created successfully.'
+              });
+            }
+          );
+        }
+      });
+    })
+    .catch(error => {
+      throw error;
     });
 };

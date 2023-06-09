@@ -1,18 +1,23 @@
 const mysql = require('mysql');
+const bcrypt = require('bcryptjs');
+const { signupValidation, loginValidation } = require('../../validator/Validation');
+const { validationResult } = require('express-validator');
+const jwt = require('jsonwebtoken');
+const { v4: uuidv4 } = require("uuid");;
 // connection configurations
-const connection = mysql.createConnection({
-  host: 'sql12.freemysqlhosting.net',
-  user: 'sql12624494',
-  password: '5Qjd2tNwqT',
-  database: 'sql12624494', // tên database (nếu có)
-  port: 3306,
-});
 // const connection = mysql.createConnection({
-//   host: 'localhost',
-//   user: 'root',
-//   password: 'root123',
-//   database: 'room'
+//   host: 'sql12.freemysqlhosting.net',
+//   user: 'sql12624494',
+//   password: '5Qjd2tNwqT',
+//   database: 'sql12624494', // tên database (nếu có)
+//   port: 3306,
 // });
+const connection = mysql.createConnection({
+  host: 'localhost',
+  user: 'root',
+  password: 'root123',
+  database: 'room'
+});
 
 connection.connect((err) => {
   if (err) throw err;
@@ -28,80 +33,47 @@ admin.initializeApp({
 }, 'my-app');
 
 exports.create = (req, res) => {
-    if (!req.body.email) {
-      return res.status(400).send({
-        message: "email can not be empty"
-      });
-    }
-    
-    var params = req.body;
-    console.log(params);
-    const studentsRef = admin.firestore().collection('students');
-      studentsRef.add(params)
-      .then(docRef => {
-        const dbRef = admin.database().ref('students');
-          dbRef.push(params, function(error) {
-          if (error) {
-            throw error;
-          } else {
-            connection.query("INSERT INTO students SET ? ", params,
-              function (error, results, fields) {
-                if (error) throw error;
-                return res.send({
-                  data: {
-                    firestoreId: docRef.id,
-                    realtimeId: dbRef.key,
-                    mysqlId: results.insertId
-                  },
-                  message: 'student has been created successfully.'
-                });
-              }
-            );
-          }
-        });
-      })
-      .catch(error => {
-        throw error;
-      });
-  };
-exports.findAll = (req, res) => {
-    connection.query('select * from students',
-        function (error, results, fields) {
-            if (error) throw error;
-            res.end(JSON.stringify(results));
-        });
-};
-exports.findOne = (req, res) => {
-
-    connection.query('select * from students where Id=?',
-        [req.params.id],
-        function (error, results, fields) {
-            if (error) throw error;
-            res.end(JSON.stringify(results));
-        });
-};
-exports.update = (req, res) => {
-    // Validate Request
-    if (!req.body.description) {
-        return res.status(400).send({
-            message: "email can not be empty"
-        });
-    }
-
-    console.log(req.params.id);
-    console.log(req.body.description);
-    connection.query('UPDATE `students` SET `name`=?,`email`=? where `id`=?',
-        [req.body.name, req.body.description, req.params.id],
-        function (error, results, fields) {
-            if (error) throw error;
-            res.end(JSON.stringify(results));
-        });
-};
-exports.delete = (req, res) => {
-    console.log(req.body);
-    connection.query('DELETE FROM `students` WHERE `Id`=?', 
-        [req.body.id], function (error, results, fields) {
-            if (error) throw error;
-            res.end('a student disconneted');
+  const { classesId, usersId } = req.body; // Lấy dữ liệu từ request body
+  console.log(req.body)
+  const theToken = req.headers.authorization && req.headers.authorization.split(' ')[1];
+  console.log(theToken)
+  // Kiểm tra xác thực token và role của người dùng
+  if (
+    !req.headers.authorization ||
+    !req.headers.authorization.startsWith('Bearer') ||
+    !req.headers.authorization.split(' ')[1]
+  ) {
+    return res.status(422).json({
+      message: "Please provide a valid auth token"
     });
+  }
+  
+  const token = req.headers.authorization.split(' ')[1];
+  const decoded = jwt.verify(token, 'the-super-strong-secrect');
+  console.log(decoded)
+  if (decoded.role !== 'student') {
+    return res.status(401).json({
+      message: "Unauthorized"
+    });
+  }
+  const getStudentsQuery = `SELECT users.name, users.email 
+                            FROM links 
+                            INNER JOIN users ON links.users_id = users.id 
+                            WHERE links.classes_id = ${parseInt(classesId)}`;
+
+  connection.query(getStudentsQuery, (error, results) => {
+      if (error) throw error;
+      console.log(results);
+  });
+
+  // Tạo liên kết giữa giáo viên và sinh viên
+  const createLinkQuery = `INSERT INTO links (classes_id, users_id) VALUES (${parseInt(classesId)}, ${parseInt(usersId)})`;
+console.log(createLinkQuery)
+  connection.query(createLinkQuery, (error, results) => {
+      if (error) throw error;
+      return res.send({
+          data: results,
+          message: 'class and student have been linked successfully.'
+      });
+  });
 };
