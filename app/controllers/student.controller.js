@@ -7,6 +7,12 @@ const connection = mysql.createConnection({
   database: 'sql12624494', // tên database (nếu có)
   port: 3306,
 });
+// const connection = mysql.createConnection({
+//   host: 'localhost',
+//   user: 'root',
+//   password: 'root123',
+//   database: 'room'
+// });
 
 connection.connect((err) => {
   if (err) throw err;
