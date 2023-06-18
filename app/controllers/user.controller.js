@@ -4,19 +4,19 @@ const { signupValidation, loginValidation } = require('../../validator/Validatio
 const { validationResult } = require('express-validator');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require("uuid");
-// const connection = mysql.createConnection({
-//   host: 'sql12.freemysqlhosting.net',
-//   user: 'sql12624494',
-//   password: '5Qjd2tNwqT',
-//   database: 'sql12624494', // tên database (nếu có)
-//   port: 3306,
-// });
 const connection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: 'root123',
-  database: 'room'
+  host: 'sql12.freemysqlhosting.net',
+  user: 'sql12627042',
+  password: 'ZB13rQ45mM',
+  database: 'sql12627042',
+  port: 3306,
 });
+// const connection = mysql.createConnection({
+//   host: 'localhost',
+//   user: 'root',
+//   password: 'root123',
+//   database: 'room'
+// });
 connection.connect(function (err) {
   if (err) throw err
   console.log('You are now connected with mysql database users')
@@ -39,6 +39,7 @@ exports.create = (req, res) => {
   }
 
   const params = req.body;
+  params.role = req.params.role; // Thêm trường role từ URL parameter vào payload của request body
 
   // Hash password before adding to database
   bcrypt.genSalt(10, function (err, salt) {
@@ -65,7 +66,8 @@ exports.create = (req, res) => {
                     data: {
                       firestoreId: docRef.id,
                       realtimeId: dbRef.key,
-                      mysqlId: results.insertId
+                      mysqlId: results.insertId,
+                      role: params.role // Thêm trường role vào kết quả trả về
                     },
                     message: 'User has been created successfully.'
                   });

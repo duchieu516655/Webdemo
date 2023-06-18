@@ -72,10 +72,10 @@
       isConnected: true,
       connectedAt: new Date().toLocaleString()
     });
-    userConnectionRef.onDisconnect().set({
-      isConnected: false,
-      disconnectedAt: new Date().toLocaleString()
-    }).then(() => {
+    userConnectionRef.onDisconnect().remove()
+    .then(() => console.log('Data removed on disconnect'))
+    .catch(error => console.error(error))
+	.then(() => {
       console.log('Successfully registered onDisconnect() handler');
     }).catch((error) => {
       console.error('Failed to register onDisconnect() handler:', error);

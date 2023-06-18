@@ -5,19 +5,19 @@ const { signupValidation, loginValidation } = require('../../validator/Validatio
 const { validationResult } = require('express-validator');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require("uuid");
-// const connection = mysql.createConnection({
-//   host: 'sql12.freemysqlhosting.net',
-//   user: 'sql12624494',
-//   password: '5Qjd2tNwqT',
-//   database: 'sql12624494', // tên database (nếu có)
-//   port: 3306,
-// });
 const connection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: 'root123',
-  database: 'room'
+  host: 'sql12.freemysqlhosting.net',
+  user: 'sql12627042',
+  password: 'ZB13rQ45mM',
+  database: 'sql12627042',
+  port: 3306,
 });
+// const connection = mysql.createConnection({
+//   host: 'localhost',
+//   user: 'root',
+//   password: 'root123',
+//   database: 'room'
+// });
 var admin = require("firebase-admin");
 
 var serviceAccount = require("/webdemo/webdemo-d1191-firebase-adminsdk-6ebpi-81b5c8b628.json");

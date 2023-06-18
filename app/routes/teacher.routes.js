@@ -4,11 +4,4 @@ module.exports = function(app) {
 
     app.post('/teacher/creat',teacher.createClasses);
 
-    // app.get('/all/teacher', teacher.findAll);
-
-    // app.get('/teacher/:id', teacher.findOne);
-
-    // app.put('/teacher/:id', teacher.update);
-
-    // app.delete('/teacher/:id', teacher.delete);
 }   
