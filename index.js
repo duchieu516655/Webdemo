@@ -36,6 +36,10 @@ app.get('/room/:roomId', (req, res) => {
     const roomId = req.params.roomId;
     res.render("main", { roomId });
 });
+app.get('/student/:roomId', (req, res) => {
+  const roomId = req.params.roomId;
+  res.render("student", { roomId });
+});
 
 require('./app/routes/student.routes.js')(app);
 require('./app/routes/teacher.routes.js')(app);

@@ -3,19 +3,19 @@ const express = require('express');
 const app = express();
 const { v4: uuidv4 } = require("uuid");
 // connection configurations
-const connection = mysql.createConnection({
-  host: 'sql12.freemysqlhosting.net',
-  user: 'sql12627042',
-  password: 'ZB13rQ45mM',
-  database: 'sql12627042',
-  port: 3306,
-});
 // const connection = mysql.createConnection({
-//   host: 'localhost',
-//   user: 'root',
-//   password: 'root123',
-//   database: 'room'
+//   host: 'sql12.freemysqlhosting.net',
+//   user: 'sql12627042',
+//   password: 'ZB13rQ45mM',
+//   database: 'sql12627042',
+//   port: 3306,
 // });
+const connection = mysql.createConnection({
+  host: 'localhost',
+  user: 'root',
+  password: 'root123',
+  database: 'room'
+});
 
 var admin = require("firebase-admin");
 

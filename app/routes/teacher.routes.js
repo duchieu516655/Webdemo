@@ -2,6 +2,5 @@ const { signupValidation, loginValidation } = require('../../validator/Validatio
 module.exports = function(app) {
     const teacher = require('../controllers/teacher.controller.js');
 
-    app.post('/teacher/creat',teacher.createClasses);
-
+    app.post('/teacher/creat',teacher.createClasses);//giáo viên tạo lớp học cần name lớp
 }   

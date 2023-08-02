@@ -3,21 +3,21 @@ const bcrypt = require('bcryptjs');
 const { signupValidation, loginValidation } = require('../../validator/Validation');
 const { validationResult } = require('express-validator');
 const jwt = require('jsonwebtoken');
-const { v4: uuidv4 } = require("uuid");;
+const { v4: uuidv4 } = require("uuid");
 // connection configurations
-const connection = mysql.createConnection({
-  host: 'sql12.freemysqlhosting.net',
-  user: 'sql12627042',
-  password: 'ZB13rQ45mM',
-  database: 'sql12627042',
-  port: 3306,
-});
 // const connection = mysql.createConnection({
-//   host: 'localhost',
-//   user: 'root',
-//   password: 'root123',
-//   database: 'room'
+//   host: 'sql12.freemysqlhosting.net',
+//   user: 'sql12627042',
+//   password: 'ZB13rQ45mM',
+//   database: 'sql12627042',
+//   port: 3306,
 // });
+const connection = mysql.createConnection({
+  host: 'localhost',
+  user: 'root',
+  password: 'root123',
+  database: 'room'
+});
 
 connection.connect((err) => {
   if (err) throw err;
@@ -32,33 +32,30 @@ admin.initializeApp({
   databaseURL: "https://webdemo-d1191-default-rtdb.firebaseio.com/"
 }, 'my-app');
 
-exports.create = (req, res) => {
-  const { classesId, usersId } = req.body; // Lấy dữ liệu từ request body
-  console.log(req.body)
-  const theToken = req.headers.authorization && req.headers.authorization.split(' ')[1];
-  console.log(theToken)
-  // Kiểm tra xác thực token và role của người dùng
-  if (
-    !req.headers.authorization ||
-    !req.headers.authorization.startsWith('Bearer') ||
-    !req.headers.authorization.split(' ')[1]
-  ) {
-    return res.status(422).json({
-      message: "Please provide a valid auth token"
-    });
-  }
+exports.add = (req, res) => {
+  const { name, email } = req.body;
+
+  // Thực hiện truy vấn SQL để chèn thông tin học sinh vào bảng users
+  const query = "INSERT INTO students SET ?";
   
-  const token = req.headers.authorization.split(' ')[1];
-  const decoded = jwt.verify(token, 'the-super-strong-secrect');
-  console.log(decoded)
-  if (decoded.role !== 'student') {
-    return res.status(401).json({
-      message: "Unauthorized"
-    });
-  }
-  const getStudentsQuery = `SELECT users.name, users.email 
+  connection.query(query, { name, email }, (err, result) => {
+    if (err) {
+      console.error('Lỗi truy vấn:', err);
+      res.status(500).json({ error: 'Đã xảy ra lỗi khi tạo thông tin học sinh' });
+      return;
+    }
+
+    res.status(201).json({ message: 'Thông tin học sinh đã được tạo thành công' });
+  });
+};
+
+exports.create = (req, res) => {
+  const { classesId, studentsId } = req.body; // Lấy dữ liệu từ request body
+  console.log(req.body)
+  
+  const getStudentsQuery = `SELECT students.name, students.email 
                             FROM links 
-                            INNER JOIN users ON links.users_id = users.id 
+                            INNER JOIN students ON links.students_id = students.id 
                             WHERE links.classes_id = ${parseInt(classesId)}`;
 
   connection.query(getStudentsQuery, (error, results) => {
@@ -67,7 +64,7 @@ exports.create = (req, res) => {
   });
 
   // Tạo liên kết giữa giáo viên và sinh viên
-  const createLinkQuery = `INSERT INTO links (classes_id, users_id) VALUES (${parseInt(classesId)}, ${parseInt(usersId)})`;
+  const createLinkQuery = `INSERT INTO links (classes_id, students_id) VALUES (${parseInt(classesId)}, ${parseInt(studentsId)})`;
 console.log(createLinkQuery)
   connection.query(createLinkQuery, (error, results) => {
       if (error) throw error;

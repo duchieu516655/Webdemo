@@ -2,7 +2,7 @@ const { signupValidation, loginValidation } = require('../../validator/Validatio
 module.exports = function(app) {
     const users = require('../controllers/user.controller');
 
-    app.post('/register/:role',signupValidation, users.create);
+    app.post('/register/:role',signupValidation, users.create);// cần name email password
 
-    app.post('/login',loginValidation, users.login);
+    app.post('/login',loginValidation, users.login);// email và password
 }   
