@@ -33,10 +33,10 @@ connection.connect(function (err) {
 
 exports.getStudentsByclassesId = (req, res) => {
   const classesId = req.params.id; 
-  const getStudentsQuery = `SELECT users.name, users.email
+  const getStudentsQuery = `SELECT students.name, students.email
                             FROM links
                             INNER JOIN classes ON links.classes_id = classes.id
-                            INNER JOIN users ON links.users_id = users.id 
+                            INNER JOIN students ON links.students_id = students.id 
                             WHERE links.classes_id = ${classesId}`;
 
   connection.query(getStudentsQuery, (error, results) => {
